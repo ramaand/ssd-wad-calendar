@@ -13,7 +13,7 @@ import RenderIf from '~/components/RenderIf'
 import AddActivity from './AddActivity'
 import CellItem from './CellItem'
 
-const CalendarContent = ({ month, year }) => {
+const CalendarContent = ({ month, year, showActivityButton }) => {
   const activityModal = useActivityModal();
   const deleteDialog = useDeleteDialog();
 
@@ -82,8 +82,22 @@ const CalendarContent = ({ month, year }) => {
             key={i}
             className={cn(
               'border-gray-300 p-2 group min-h-[6rem]',
-              day && 'border'
+              day && 'border',
+              day &&
+                getActivities(day)?.length < 3 &&
+                !showActivityButton &&
+                'cursor-pointer'
             )}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (
+                day &&
+                getActivities(day)?.length < 3 &&
+                !showActivityButton
+              ) {
+                handleAddActivity(day);
+              }
+            }}
           >
             <p className="mb-2 font-semibold">{day?.getDate()}</p>
             <RenderIf isTrue={getActivities(day)?.length}>
@@ -92,18 +106,29 @@ const CalendarContent = ({ month, year }) => {
                   <CellItem
                     key={activity.name + activityIndex}
                     activity={activity}
-                    onDelete={() =>
-                      handleDeleteActivity(day, activity, activityIndex)
-                    }
-                    onUpdate={() =>
-                      handleUpdateActivity(day, activity, activityIndex)
-                    }
+                    onDelete={(e) => {
+                      e.stopPropagation();
+                      handleDeleteActivity(day, activity, activityIndex);
+                    }}
+                    onUpdate={(e) => {
+                      e.stopPropagation();
+                      handleUpdateActivity(day, activity, activityIndex);
+                    }}
                   />
                 ))}
               </ul>
             </RenderIf>
-            <RenderIf isTrue={day && getActivities(day)?.length < 3}>
-              <AddActivity onClick={() => handleAddActivity(day)} />
+            <RenderIf
+              isTrue={
+                day && getActivities(day)?.length < 3 && showActivityButton
+              }
+            >
+              <AddActivity
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddActivity(day);
+                }}
+              />
             </RenderIf>
           </div>
         ))}
@@ -115,6 +140,7 @@ const CalendarContent = ({ month, year }) => {
 CalendarContent.propTypes = {
   month: PropTypes.number,
   year: PropTypes.number,
+  showActivityButton: PropTypes.bool,
 };
 
 export default CalendarContent;
